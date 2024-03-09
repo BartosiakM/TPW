@@ -4,5 +4,5 @@
 
 | Name Surname (initials) | GUID                                     |
 | ----------------------- | ---------------------------------------- |
-| Piotr Lewkowicz         | `{FD9D086C-532F-4AAC-BB99-69D7798837D8}` |
-| Mikolaj Bartosiak       | `{44FBFCF5-4430-4964-878D-1867DC679E0D}` |
+| Piotr Lewkowicz         | `{09EEAD37-3558-47A2-8780-86A1D461B919}` |
+| Mikolaj Bartosiak       | `{64BF850F-4DC0-4CA3-974F-1963F55E4882}` |
