@@ -5,37 +5,38 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ViewModel;assembly=ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1080">
+        Title="MainWindow" Height="600" Width="1080" Background="#383838">
 
     <Window.Resources>
 
     </Window.Resources>
     <Grid>
-        <Canvas Margin="200" Height="335">
+        <Border BorderBrush="Black" BorderThickness="5" Margin="200,200,200,40"/>
+        <Canvas Margin="200" Height="335" Background="Green" >
             <ItemsControl ItemsSource="{Binding Balls}" Padding="0">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Canvas IsItemsHost="True" HorizontalAlignment="Center"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Ellipse Width="{Binding Radius}" Height="{Binding Radius}" Fill ="Black " Stroke="Black" StrokeThickness="2">
-                        <Ellipse.RenderTransform>
-                            <TranslateTransform X="{Binding X}" Y="{Binding Y}" />
-                        </Ellipse.RenderTransform>
-                    </Ellipse>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-                <ItemsControl.ItemContainerStyle>
-                    <Style TargetType="{x:Type ContentPresenter}">
-                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
-                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
-                    </Style>
-                </ItemsControl.ItemContainerStyle>
-            </ItemsControl>
-        </Canvas>
-        <Button Content="Start" Command ="{Binding StartCommand}" HorizontalAlignment="Left" Margin="310,75,0,0" VerticalAlignment="Top" Height="49" Width="183"/>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas IsItemsHost="True" HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="{Binding Diameter}" Height="{Binding Diameter}" Fill ="red " Stroke="Black" StrokeThickness="2">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform X="{Binding X}" Y="{Binding Y}" />
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="{x:Type ContentPresenter}">
+                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+            </Canvas>
+            <Button Content="Start" Command ="{Binding StartCommand}" HorizontalAlignment="Left" Margin="310,75,0,0" VerticalAlignment="Top" Height="49" Width="183"/>
         <Button Content="Add Ball" Command ="{Binding CreateBallCommand}" HorizontalAlignment="Left" Margin="584,75,0,0" VerticalAlignment="Top" Height="49" Width="184" RenderTransformOrigin="0.502,0.556"/>
     </Grid>
 </Window>

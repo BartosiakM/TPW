@@ -30,6 +30,7 @@ namespace ViewModel
         public override void CreateBall()
         {
             model.CreateBall();
+            Balls = GetBalls();
         }
 
        
