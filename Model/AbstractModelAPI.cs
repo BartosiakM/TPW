@@ -1,35 +1,21 @@
-﻿using System.Numerics;
+﻿using System.Collections.ObjectModel;
 using Logic;
 
 namespace Model
 {
 
-    public abstract class AbstractModelAPI : IObserver<IEnumerable<IBall>>, IObservable<IEnumerable<IBallModel>>
+    public abstract class AbstractModelAPI
     {
+        public abstract void Start();
+        public abstract void CreateBall();
 
-        public abstract void SpawnBalls(int numberOfBalls);
-
-        public static AbstractModelAPI CreateInstance()
+        public abstract ObservableCollection<object> GetBalls();
+        
+        public static AbstractModelAPI CreateAPI()
         {
-            return new Model();
+            return new ModelAPI();
         }
 
-        public abstract void OnCompleted();
-
-        public abstract void OnError(Exception error);
-
-        public abstract void OnNext(IEnumerable<IBall> value);
-
-        public abstract IDisposable Subscribe(IObserver<IEnumerable<IBallModel>> observer);
-    }
-
-    public interface IBallModel
-    {
-        double X { get; }
-        double Y { get; }
-        double VelocityX { get; }
-        double VelocityY { get; }
-        int Radius { get; }   
     }
 
 }

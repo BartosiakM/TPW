@@ -6,7 +6,7 @@ namespace ViewModel
 {
     internal abstract class AbstractViewModelAPI
     {
-        public ObservableCollection<object> Balls { get; set; }
+        public abstract ObservableCollection<object> Balls { get; set; }
         public abstract ICommand StartCommand { get; }
         public abstract ICommand CreateBallCommand { get; }
 

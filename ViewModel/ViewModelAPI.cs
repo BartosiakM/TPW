@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Model;
@@ -10,18 +11,16 @@ namespace ViewModel
     {
         private readonly AbstractModelAPI model;
 
-        public ICommand StartCommand { get; }
-
         private ObservableCollection<object> balls;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public ViewModelAPI()
         {
             model = AbstractModelAPI.CreateAPI();
-            StartCommand = new RelayCommand(Start);
-            CreateBallCommand = new RelayCommand(CreateBall);
-            Balls = GetBalls();
+            this.StartCommand = new Command(Start);
+            this.CreateBallCommand = new Command(CreateBall);
+            this.Balls = GetBalls();
         }
 
         public override ICommand StartCommand { get; }
@@ -49,9 +48,10 @@ namespace ViewModel
                 OnPropertyChanged();
             }
         }
-        private void OnPropertyChanged()
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+
         {
-            throw new NotImplementedException();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public override ObservableCollection<object> GetBalls()
