@@ -4,7 +4,7 @@ using Model;
 
 namespace ViewModel
 {
-    internal abstract class AbstractViewModelAPI
+    public abstract class AbstractViewModelAPI
     {
         public abstract ObservableCollection<object> Balls { get; set; }
         public abstract ICommand StartCommand { get; }

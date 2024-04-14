@@ -5,11 +5,11 @@ using System.Windows;
 namespace View
 {
     /// <summary>
-    /// Logika interakcji dla klasy Window1.xaml
+    /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class AppWindow : Window
+    public partial class MainWindow : Window
     {
-        public AppWindow()
+        public MainWindow()
         {
             InitializeComponent();
             DataContext = AbstractViewModelAPI.createAPI();
