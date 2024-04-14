@@ -13,7 +13,7 @@ namespace Logic
         private SimulationManager _simulationManager;
         private bool _isRunning = false;
 
-        public SimulationController(DataApi? data = default) : base(data)
+        public SimulationController(DataApi? data = default) : base(dataApi: data)
         {
             _data = data ?? DataApi.dataFactory();
             _simulationManager = new SimulationManager(new Window(_data.windowWidth, _data.windowHeight), _data.ballSize);

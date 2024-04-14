@@ -17,7 +17,22 @@ namespace Logic
         public abstract void StartSim();
         public abstract void StopSim();
         public abstract IDisposable Subscribe(IObserver<IEnumerable<IBall>> observer);
+
+        public static LogicApi CreateInstance(DataApi? data = default)
+        {
+            if (data == null)
+            {
+                return new SimulationController(DataApi.dataFactory());
+            }
+            else
+            {
+                return new SimulationController(data);
+            }
+        }
+
+
     }
+
 
 
     public interface IBall
