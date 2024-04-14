@@ -18,7 +18,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
-            <Button Content="Start" Command="{Binding StartCommand}"
+            <Button Content="Start" Command="{Binding StartCommand}" Margin="5"/>
         </StackPanel>
     </Grid>
 </Window>
