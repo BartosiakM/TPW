@@ -12,7 +12,7 @@ namespace View
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = AbstractViewModelAPI.createAPI();
+            DataContext = AbstractViewModelAPI.createAPI(300,150);
         }
     }
 }

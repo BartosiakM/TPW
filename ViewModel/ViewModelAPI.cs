@@ -15,9 +15,9 @@ namespace ViewModel
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ViewModelAPI()
+        public ViewModelAPI(int boardWidth, int boardHeight)
         {
-            model = AbstractModelAPI.CreateAPI();
+            model = AbstractModelAPI.CreateAPI(boardWidth,boardHeight);
             this.StartCommand = new Command(Start);
             this.CreateBallCommand = new Command(CreateBall);
             this.Balls = GetBalls();

@@ -35,10 +35,7 @@ namespace Logic
 
         }
 
-        public static AbstractLogicAPI? createApi()
-        {
-            throw new NotImplementedException();
-        }
+        
     }
     internal class LogicAPI : AbstractLogicAPI
     {

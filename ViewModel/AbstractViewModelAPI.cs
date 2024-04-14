@@ -15,9 +15,9 @@ namespace ViewModel
 
         public abstract ObservableCollection<object> GetBalls();
 
-        public static AbstractViewModelAPI createAPI()
+        public static AbstractViewModelAPI createAPI(int boardWidth,int boardHeight)
         {
-            return new ViewModelAPI();
+            return new ViewModelAPI(boardWidth,boardHeight);
         }
 
     }

@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace ViewModel
 {
-    internal class Command : ICommand
+    public class Command : ICommand
     {
         private readonly Action action;
         private readonly Func<bool> canExecute;

@@ -11,9 +11,9 @@ namespace Model
 
         public abstract ObservableCollection<object> GetBalls();
         
-        public static AbstractModelAPI CreateAPI()
+        public static AbstractModelAPI CreateAPI(int boardWidth, int boardHeight)
         {
-            return new ModelAPI();
+            return new ModelAPI(boardWidth,boardHeight); 
         }
 
     }

@@ -7,9 +7,9 @@ namespace Model
     {
         private AbstractLogicAPI logic;
 
-        public ModelAPI()
+        public ModelAPI(int boardWidth, int boardHeight)
         {
-            this.logic = AbstractLogicAPI.createApi();
+            this.logic = AbstractLogicAPI.CreateApi(boardWidth,boardHeight,null);
         }
 
         public override void CreateBall()
