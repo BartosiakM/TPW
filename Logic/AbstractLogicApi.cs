@@ -7,7 +7,7 @@ using System.Timers;
 namespace Logic
 {
 
-    public abstract class LogicApi
+    public abstract class AbstractLogicAPI
     {
         public abstract List<BallAPI> balls { get; }
         public abstract int BoardWidth { get; }
@@ -21,21 +21,21 @@ namespace Logic
         public abstract int GetSize(int i);
         public abstract int GetBallsNumber();
 
-        public static LogicApi CreateApi(int width, int height, DataAPI data)
+        public static AbstractLogicAPI CreateApi(int width, int height, DataAPI data)
         {
             if (data == null)
             {
-                return new BallsAPI(width, height, DataAPI.CreateDataAPI());
+                return new LogicAPI(width, height, DataAPI.CreateDataAPI());
 
             }
             else
             {
-                return new BallsAPI(width, height, data);
+                return new LogicAPI(width, height, data);
             }
 
         }
     }
-    internal class BallsAPI : LogicApi
+    internal class LogicAPI : AbstractLogicAPI
     {
         public System.Timers.Timer Timer;
         public override List<BallAPI> balls { get; }
@@ -45,7 +45,7 @@ namespace Logic
         private DataAPI data;
 
 
-        public BallsAPI(int width, int height, DataAPI data)
+        public LogicAPI(int width, int height, DataAPI data)
         {
             balls = new List<BallAPI>();
             Timer = new System.Timers.Timer(1000 / 60);

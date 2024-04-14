@@ -13,7 +13,7 @@ namespace LogicTest
     [TestClass]
     public class BallsAPITests
     {
-        private LogicApi logicApi;
+        private AbstractLogicAPI abstractLogicAPI;
 
         public class TestData : DataAPI
         {
@@ -23,23 +23,61 @@ namespace LogicTest
         [TestInitialize]
         public void TestInitialize()
         {
-            logicApi = LogicApi.CreateApi(800, 600, new TestData());
+            abstractLogicAPI = AbstractLogicAPI.CreateApi(800, 600, new TestData());
         }
 
         [TestMethod]
         public void TestCreateBall()
         {
-            logicApi.CreateBall();
-            Assert.AreEqual(1, logicApi.GetBallsNumber());
+            abstractLogicAPI.CreateBall();
+            Assert.AreEqual(1, abstractLogicAPI.GetBallsNumber());
 
 
-            int x = logicApi.GetX(0);
-            int y = logicApi.GetY(0);
-            int size = logicApi.GetSize(0);
+            int x = abstractLogicAPI.GetX(0);
+            int y = abstractLogicAPI.GetY(0);
+            int size = abstractLogicAPI.GetSize(0);
             Assert.IsTrue(x >= 20 && x <= 780);
             Assert.IsTrue(y >= 20 && y <= 580);
             Assert.AreEqual(20, size);
 
         }
+
+        [TestMethod]
+        public void TestMoveBall()
+        {
+
+            abstractLogicAPI.CreateBall();
+            int x0 = abstractLogicAPI.GetX(0);
+            int y0 = abstractLogicAPI.GetY(0);
+
+
+            abstractLogicAPI.Start();
+            System.Threading.Thread.Sleep(100);
+            abstractLogicAPI.Stop();
+
+            int x1 = abstractLogicAPI.GetX(0);
+            int y1 = abstractLogicAPI.GetY(0);
+            Assert.AreNotEqual(x0, x1);
+            Assert.AreNotEqual(y0, y1);
+        }
+
+        [TestMethod]
+        public void TestBounds()
+        {
+
+            abstractLogicAPI.CreateBall();
+
+            abstractLogicAPI.Start();
+            System.Threading.Thread.Sleep(10000);
+            abstractLogicAPI.Stop();
+
+            int x = abstractLogicAPI.GetX(0);
+            int y = abstractLogicAPI.GetY(0);
+            int size = abstractLogicAPI.GetSize(0);
+
+            Assert.IsTrue(x >= size && x <= abstractLogicAPI.BoardWidth - size);
+            Assert.IsTrue(y >= size && y <= abstractLogicAPI.BoardHeight - size);
+        }
+
     }
 }

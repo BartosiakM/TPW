@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace Data
 {
-    public abstract class DataAPI
+    internal class Data : DataAPI
     {
-        public static DataAPI CreateDataAPI()
-        {
-            return new Data();
-        }
+
     }
 }
