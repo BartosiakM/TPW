@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 
 namespace Data
 {
-    public abstract class DataApi
+    public abstract class DataAPI
     {
-        public abstract int windowHeight { get; }
-        public abstract int windowWidth { get; }
-        public abstract int ballSize { get; }
-        public static DataApi dataFactory()
+        public static DataAPI CreateDataAPI()
         {
             return new Data();
         }
+    }
+    internal class Data : DataAPI
+    {
+
     }
 }

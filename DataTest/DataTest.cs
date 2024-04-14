@@ -1,26 +1,20 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Data;
 
-namespace DataTest
+namespace DataTests
 {
     [TestClass]
-    public class DataTest
+    public class DataTests
     {
         [TestMethod]
-        public void DataFactoryTest()
+        public void TestCreateDataAPI()
         {
-            DataApi dataApi = DataApi.dataFactory();
-            Assert.IsNotNull(dataApi);
-        }
 
-        [TestMethod]
-        public void DataVariablesTest()
-        {
-            DataApi dataApi = DataApi.dataFactory();
+            DataAPI dataAPI = null;
 
-            Assert.IsTrue(dataApi.windowHeight > 0);
-            Assert.IsTrue(dataApi.windowWidth > 0);
-            Assert.IsTrue(dataApi.ballSize > 0);
+            dataAPI = DataAPI.CreateDataAPI();
+            Assert.IsNotNull(dataAPI);
+            Assert.IsInstanceOfType(dataAPI, typeof(DataAPI));
         }
     }
 }

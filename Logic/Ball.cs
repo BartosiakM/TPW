@@ -1,46 +1,87 @@
-﻿using System;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Logic
 {
-    public class Ball
+    public abstract class BallAPI
     {
-        private Random random = new Random();
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double VelocityX { get; set; }
-        public double VelocityY { get; set; }
-        public double Radius { get; set; }
-
-        public Ball()
+        public abstract int X { get; set; }
+        public abstract int Y { get; set; }
+        public abstract int Diameter { get; }
+        public abstract int Size { get; }
+        public abstract void MoveBall(int boardWidth, int boardHeight);
+        public static BallAPI CreateBallAPI(int _x, int _y, int _deltaX, int _deltaY, int _size)
         {
-            Random random = new Random();
-            X = GetRandomNumber(21.0, 679.0);
-            Y = GetRandomNumber(21.0, 479.0);
-            VelocityX = GetRandomNumber(1, 3);
-            VelocityY = GetRandomNumber(1, 3);
-            Radius = 10;
+            return new Ball(_x, _y, _deltaX, _deltaY, _size);
         }
 
-        private double GetRandomNumber(double min, double max)
+    }
+
+    internal class Ball : BallAPI, INotifyPropertyChanged
+    {
+        private int _x;
+        private int _y;
+        private int _deltaX;
+        private int _deltaY;
+        private readonly int _size;
+
+
+        public Ball(int _x, int _y, int _deltaX, int _deltaY, int _size)
         {
-            return random.NextDouble() * (max - min) + min;
+            this._x = _x;
+            this._y = _y;
+            this._deltaX = _deltaX;
+            this._deltaY = _deltaY;
+            this._size = _size;
+
         }
 
-        public void ChangingPosition(double height, double width)
+        public override int X
         {
-            double nextX = X + VelocityX;
-            double nextY = Y + VelocityY;
-
-            if (nextX + Radius > width || nextX < Radius)
+            get { return _x; }
+            set
             {
-                VelocityX *= -1.0;
+                _x = value;
+                OnPropertyChanged();
             }
-            if (nextY + Radius > height || nextY < Radius)
-            {
-                VelocityY *= -1.0;
-            }
-            X = nextX;
-            Y = nextY;
         }
+
+        public override int Y
+        {
+            get { return _y; }
+            set
+            {
+                _y = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public override int Diameter
+        {
+            get { return _size * 2; }
+        }
+
+        public override int Size { get => _size; }
+
+        public override void MoveBall(int boardWidth, int boardHeight)
+        {
+            if ((_x + _deltaX) < 0 || _x + _deltaX >= boardWidth)
+            {
+                _deltaX = -_deltaX;
+            }
+            if ((_y + _deltaY) < 0 || _y + _deltaY >= boardHeight)
+            {
+                _deltaY = -_deltaY;
+            }
+
+            X += _deltaX;
+            Y += _deltaY;
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }

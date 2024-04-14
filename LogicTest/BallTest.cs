@@ -1,4 +1,5 @@
-﻿using Logic;
+﻿using Data;
+using Logic;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -9,62 +10,36 @@ using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace LogicTest
 {
-    [TestFixture]
-    public class BallTests
+    [TestClass]
+    public class BallsAPITests
     {
-        [Test]
-        public void Ball_PositionChangesAfterMovement()
+        private LogicApi logicApi;
+
+        public class TestData : DataAPI
         {
-            var ball = new Ball();
-            var initialX = ball.X;
-            var initialY = ball.Y;
-            var width = 800;
-            var height = 600;
-
-            ball.ChangingPosition(height, width);
-
-            Assert.AreNotEqual(initialX, ball.X);
-            Assert.AreNotEqual(initialY, ball.Y);
+            public TestData() { }
         }
 
-        [Test]
-        public void Ball_ReversesVelocityWhenReachingBoundaries()
+        [TestInitialize]
+        public void TestInitialize()
         {
-            var ball = new Ball
-            {
-                X = 790,
-                Y = 300,
-                VelocityX = 2,
-                VelocityY = 0,
-                Radius = 10
-            };
-            var width = 800;
-            var height = 600;
-
-            ball.ChangingPosition(height, width);
-
-            // Assert
-            Assert.AreEqual(-2, ball.VelocityX); // Velocity should reverse after hitting right boundary
+            logicApi = LogicApi.CreateApi(800, 600, new TestData());
         }
 
-        [Test]
-        public void Ball_DoesNotReverseVelocityInsideBoundaries()
+        [TestMethod]
+        public void TestCreateBall()
         {
-            // Arrange
-            var ball = new Ball
-            {
-                X = 100,
-                Y = 300,
-                VelocityX = 2,
-                VelocityY = 0,
-                Radius = 10
-            };
-            var width = 800;
-            var height = 600;
+            logicApi.CreateBall();
+            Assert.AreEqual(1, logicApi.GetBallsNumber());
 
-            ball.ChangingPosition(height, width);
 
-            Assert.AreEqual(2, ball.VelocityX);
+            int x = logicApi.GetX(0);
+            int y = logicApi.GetY(0);
+            int size = logicApi.GetSize(0);
+            Assert.IsTrue(x >= 20 && x <= 780);
+            Assert.IsTrue(y >= 20 && y <= 580);
+            Assert.AreEqual(20, size);
+
         }
     }
 }

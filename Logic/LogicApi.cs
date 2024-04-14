@@ -1,46 +1,141 @@
 ﻿using Data;
-using System.Numerics;
+using System;
+using System.Collections.Generic;
+using System.Timers;
+
 
 namespace Logic
 {
+
     public abstract class LogicApi
     {
-        private readonly DataApi dataApi;
+        public abstract List<BallAPI> balls { get; }
+        public abstract int BoardWidth { get; }
+        public abstract int BoardHeight { get; }
+        public abstract void CreateBall();
+        public abstract void Start();
+        public abstract void Stop();
 
-        public LogicApi(DataApi dataApi)
-        {
-            this.dataApi = dataApi;
-        }
-        internal abstract IEnumerable<Ball> Balls { get; }
-        public abstract void SpawnBalls(int numberOfBalls);
-        public abstract void Simulation();
-        public abstract void StartSim();
-        public abstract void StopSim();
-        public abstract IDisposable Subscribe(IObserver<IEnumerable<IBall>> observer);
+        public abstract int GetX(int i);
+        public abstract int GetY(int i);
+        public abstract int GetSize(int i);
+        public abstract int GetBallsNumber();
 
-        public static LogicApi CreateInstance(DataApi? data = default)
+        public static LogicApi CreateApi(int width, int height, DataAPI data)
         {
             if (data == null)
             {
-                return new SimulationController(DataApi.dataFactory());
+                return new BallsAPI(width, height, DataAPI.CreateDataAPI());
+
             }
             else
             {
-                return new SimulationController(data);
+                return new BallsAPI(width, height, data);
             }
+
+        }
+    }
+    internal class BallsAPI : LogicApi
+    {
+        public System.Timers.Timer Timer;
+        public override List<BallAPI> balls { get; }
+        public override int BoardWidth { get; }
+        public override int BoardHeight { get; }
+
+        private DataAPI data;
+
+
+        public BallsAPI(int width, int height, DataAPI data)
+        {
+            balls = new List<BallAPI>();
+            Timer = new System.Timers.Timer(1000 / 60);
+            Timer.Elapsed += OnTimerTick;
+            this.BoardWidth = width;
+            this.BoardHeight = height;
+            this.data = data;
+
+        }
+
+        public override void CreateBall()
+        {
+            Random random = new Random();
+            int x = random.Next(20, BoardWidth - 20);
+            int y = random.Next(20, BoardHeight - 20);
+            int valueX = random.Next(-2, 3);
+            int valueY = random.Next(-2, 3);
+
+            if (valueX == 0)
+            {
+                valueX = random.Next(1, 3) * 2 - 3;
+            }
+            if (valueY == 0)
+            {
+                valueY = random.Next(1, 3) * 2 - 3;
+            }
+
+            int Vx = valueX;
+            int Vy = valueY;
+            int radius = 20;
+            balls.Add(BallAPI.CreateBallAPI(x, y, Vx, Vy, radius));
         }
 
 
-    }
+        private void OnTimerTick(object sender, ElapsedEventArgs e)
+        {
+            foreach (var ball in balls)
+            {
+                ball.MoveBall(BoardWidth, BoardHeight);
+            }
+        }
+        public override int GetX(int index)
+        {
+            if (index >= 0 && index < balls.Count)
+            {
+                return balls[index].X;
+            }
+            else
+            {
+                return -1;
+            }
+        }
 
+        public override int GetY(int index)
+        {
+            if (index >= 0 && index < balls.Count)
+            {
+                return balls[index].Y;
+            }
+            else
+            {
+                return -1;
+            }
+        }
 
+        public override int GetBallsNumber()
+        {
+            return balls.Count;
+        }
 
-    public interface IBall
-    {
-        double X { get; set; }
-        double Y { get; set; }
-        double VelocityX { get; set; }
-        double VelocityY { get; set; }
-        double Radius { get; set; }
+        public override void Start()
+        {
+            Timer.Start();
+        }
+
+        public override void Stop()
+        {
+            Timer.Stop();
+        }
+
+        public override int GetSize(int i)
+        {
+            if (i >= 0 && i < balls.Count)
+            {
+                return balls[i].Size;
+            }
+            else
+            {
+                return -1;
+            }
+        }
     }
 }
