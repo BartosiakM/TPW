@@ -25,10 +25,11 @@ namespace Model
 
     public interface IBallModel
     {
-        Vector2 Velocity { get; }
-        Vector2 Position { get; }
-        int Radius { get; }
-        int Diameter { get; }    
+        double X { get; }
+        double Y { get; }
+        double VelocityX { get; }
+        double VelocityY { get; }
+        int Radius { get; }   
     }
 
 }

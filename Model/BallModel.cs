@@ -12,12 +12,14 @@ namespace Model
             this.ball = ball;
         }
 
-        public Vector2 Velocity => throw new NotImplementedException();
+        public double X => throw new NotImplementedException();
 
-        public Vector2 Position => throw new NotImplementedException();
+        public double Y => throw new NotImplementedException();
+
+        public double VelocityX => throw new NotImplementedException();
+
+        public double VelocityY => throw new NotImplementedException();
 
         public int Radius => throw new NotImplementedException();
-
-        public int Diameter => throw new NotImplementedException();
     }
 }

@@ -5,20 +5,39 @@ namespace Model
 
     internal class Model : AbstractModelAPI
     {
-        private AbstractLogicAPI logic;
+        private LogicApi logic;
+        private IDisposable? subscriber;
 
         public Model()
         {
-            this.logic = AbstracLogicAPI.CreateInstance();
+            this.logic = LogicApi.CreateInstance();
         }
 
-        public void SpawnBalls(int numberOfBalls)
+        public override void OnCompleted()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void OnError(Exception error)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void OnNext(IEnumerable<IBall> value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void SpawnBalls(int numberOfBalls)
         {
             this.logic.SpawnBalls(numberOfBalls);
             this.logic.StartSim();
         }
 
-
+        public override IDisposable Subscribe(IObserver<IEnumerable<IBallModel>> provider)
+        {
+            subscriber =
+        }
     }
 
 }
