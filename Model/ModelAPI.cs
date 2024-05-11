@@ -3,13 +3,13 @@ using Logic;
 
 namespace Model
 {
-    internal class ModelAPI : AbstractModelAPI
+    public class ModelAPI : AbstractModelAPI
     {
         private AbstractLogicAPI logic;
 
-        public ModelAPI(int boardWidth, int boardHeight)
+        public ModelAPI(AbstractLogicAPI logic)
         {
-            this.logic = AbstractLogicAPI.CreateApi(boardWidth,boardHeight,null);
+            this.logic = logic;
         }
 
         public override void CreateBall()
@@ -20,7 +20,7 @@ namespace Model
         public override ObservableCollection<object> GetBalls()
         {
             ObservableCollection<object> balls = new ObservableCollection<object>();
-            foreach(BallAPI ball in logic.balls)
+            foreach(object ball in logic.balls)
             {
                 balls.Add(ball);
             }

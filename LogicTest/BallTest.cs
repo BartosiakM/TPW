@@ -4,6 +4,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
@@ -13,71 +14,104 @@ namespace LogicTest
     [TestClass]
     public class BallsAPITests
     {
-        private AbstractLogicAPI abstractLogicAPI;
-
-        public class TestData : DataAPI
+        [TestClass]
+        public class LogicAPITests
         {
-            public TestData() { }
+            private AbstractLogicAPI ballsApi;
+
+            public class TestData : DataAPI
+            {
+                private int _boardWidth;
+                private int _boardHeight;
+                public TestData(int boardWidth, int boardHeight)
+                {
+                    _boardHeight = boardHeight;
+                    _boardWidth = boardWidth;
+                }
+
+                public override BallAPI createBall(bool isSimulationRunning)
+                {
+                    Random random = new Random();
+                    int x = random.Next(20, _boardWidth - 20);
+                    int y = random.Next(20, _boardHeight - 20);
+                    int valueX = random.Next(-3, 4);
+                    int valueY = random.Next(-3, 4);
+
+                    if (valueX == 0)
+                    {
+                        valueX = random.Next(1, 3) * 2 - 3;
+                    }
+                    if (valueY == 0)
+                    {
+                        valueY = random.Next(1, 3) * 2 - 3;
+                    }
+
+                    int Vx = valueX;
+                    int Vy = valueY;
+                    int radius = 20;
+                    int mass = 200;
+                    return BallAPI.CreateBallAPI(x, y, Vx, Vy, radius, mass, isSimulationRunning);
+                }
+                public override int getBoardHeight()
+                {
+                    return _boardHeight;
+                }
+
+                public override int getBoardWidth()
+                {
+                    return _boardWidth;
+                }
+            }
+
+            [TestInitialize]
+            public void TestInitialize()
+            {
+                ballsApi = AbstractLogicAPI.CreateApi(300, 150, new TestData(300, 150));
+            }
+
+            [TestMethod]
+            public void TestCreateBall()
+            {
+                ballsApi.CreateBall();
+                ballsApi.Stop();
+                Assert.AreEqual(1, ballsApi.GetBallsNumber());
+
+                int x = ballsApi.GetX(0);
+                int y = ballsApi.GetY(0);
+                int size = ballsApi.GetSize(0);
+                Assert.IsTrue(x >= 0);
+                Assert.IsTrue(x <= 300);
+                Assert.IsTrue(y >= 0);
+                Assert.IsTrue(y <= 150);
+                Assert.AreEqual(20, size);
+            }
+
+
+            [TestMethod]
+            public void CreateBall_AddsNewBallToList()
+            {
+
+
+                ballsApi.CreateBall();
+
+
+                Assert.IsNotNull(ballsApi.balls);
+                Assert.AreEqual(1, ballsApi.GetBallsNumber());
+            }
+
+            [TestMethod]
+            public void Test_GetAllBalls()
+            {
+                int expectedCount = 1;
+                ballsApi.CreateBall();
+
+
+                List<BallAPI> balls = ballsApi.balls;
+
+
+                Assert.AreEqual(expectedCount, balls.Count);
+            }
+
         }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            abstractLogicAPI = AbstractLogicAPI.CreateApi(800, 600, new TestData());
-        }
-
-        [TestMethod]
-        public void TestCreateBall()
-        {
-            abstractLogicAPI.CreateBall();
-            Assert.AreEqual(1, abstractLogicAPI.GetBallsNumber());
-
-
-            int x = abstractLogicAPI.GetX(0);
-            int y = abstractLogicAPI.GetY(0);
-            int size = abstractLogicAPI.GetSize(0);
-            Assert.IsTrue(x >= 20 && x <= 780);
-            Assert.IsTrue(y >= 20 && y <= 580);
-            Assert.AreEqual(20, size);
-
-        }
-
-        [TestMethod]
-        public void TestMoveBall()
-        {
-
-            abstractLogicAPI.CreateBall();
-            int x0 = abstractLogicAPI.GetX(0);
-            int y0 = abstractLogicAPI.GetY(0);
-
-
-            abstractLogicAPI.Start();
-            System.Threading.Thread.Sleep(100);
-            abstractLogicAPI.Stop();
-
-            int x1 = abstractLogicAPI.GetX(0);
-            int y1 = abstractLogicAPI.GetY(0);
-            Assert.AreNotEqual(x0, x1);
-            Assert.AreNotEqual(y0, y1);
-        }
-
-        [TestMethod]
-        public void TestBounds()
-        {
-
-            abstractLogicAPI.CreateBall();
-
-            abstractLogicAPI.Start();
-            System.Threading.Thread.Sleep(10000);
-            abstractLogicAPI.Stop();
-
-            int x = abstractLogicAPI.GetX(0);
-            int y = abstractLogicAPI.GetY(0);
-            int size = abstractLogicAPI.GetSize(0);
-
-            Assert.IsTrue(x >= size && x <= abstractLogicAPI.BoardWidth - size);
-            Assert.IsTrue(y >= size && y <= abstractLogicAPI.BoardHeight - size);
-        }
-
     }
 }

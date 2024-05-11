@@ -8,9 +8,12 @@ namespace Data
 {
     public abstract class DataAPI
     {
-        public static DataAPI CreateDataAPI()
+        public abstract BallAPI createBall(bool isSimRunning);
+        public abstract int getBoardWidth();
+        public abstract int getBoardHeight();
+        public static DataAPI CreateDataAPI(int boardWidth, int boardHeight)
         {
-            return new Data();
+            return new Data(boardWidth, boardHeight);
         }
     }
 }

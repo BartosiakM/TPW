@@ -1,6 +1,7 @@
 ﻿using Data;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Timers;
 
 
@@ -25,12 +26,12 @@ namespace Logic
         {
             if (data == null)
             {
-                return new LogicAPI(width, height, DataAPI.CreateDataAPI());
+                return new LogicAPI(DataAPI.CreateDataAPI(width, height));
 
             }
             else
             {
-                return new LogicAPI(width, height, data);
+                return new LogicAPI(data);
             }
 
         }
@@ -39,56 +40,110 @@ namespace Logic
     }
     internal class LogicAPI : AbstractLogicAPI
     {
-        public System.Timers.Timer Timer;
         public override List<BallAPI> balls { get; }
+        private static readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim();
         public override int BoardWidth { get; }
         public override int BoardHeight { get; }
 
         private DataAPI data;
 
 
-        public LogicAPI(int width, int height, DataAPI data)
+        public LogicAPI(DataAPI data)
         {
             balls = new List<BallAPI>();
-            Timer = new System.Timers.Timer(1000 / 60);
-            Timer.Elapsed += OnTimerTick;
-            this.BoardWidth = width;
-            this.BoardHeight = height;
+            this.BoardWidth = data.getBoardWidth();
+            this.BoardHeight = data.getBoardHeight(); 
             this.data = data;
 
         }
 
         public override void CreateBall()
         {
-            Random random = new Random();
-            int x = random.Next(20, BoardWidth - 20);
-            int y = random.Next(20, BoardHeight - 20);
-            int valueX = random.Next(-2, 3);
-            int valueY = random.Next(-2, 3);
-
-            if (valueX == 0)
-            {
-                valueX = random.Next(1, 3) * 2 - 3;
-            }
-            if (valueY == 0)
-            {
-                valueY = random.Next(1, 3) * 2 - 3;
-            }
-
-            int Vx = valueX;
-            int Vy = valueY;
-            int radius = 20;
-            balls.Add(BallAPI.CreateBallAPI(x, y, Vx, Vy, radius));
+            BallAPI ball = data.createBall(true);
+            balls.Add(ball);
+            ball.subscribeToPropertyChanged(CheckCollisions);
         }
 
-
-        private void OnTimerTick(object sender, ElapsedEventArgs e)
+        private bool CheckCollisionWithOtherBall(BallAPI ball1, BallAPI ball2)
         {
-            foreach (var ball in balls)
+            int distanceX = ball2.X - ball1.X;
+            int distanceY = ball2.Y - ball1.Y;
+            int combinedRadius = ball1.Size / 2 + ball2.Size / 2;
+
+            if (distanceX * distanceX + distanceY * distanceY <= combinedRadius * combinedRadius)
             {
-                ball.MoveBall(BoardWidth, BoardHeight);
+                readerWriterLockSlim.EnterWriteLock();
+                try
+                {
+                    int v1x = ball1.Vx;
+                    int v1y = ball1.Vy;
+                    int v2x = ball2.Vx;
+                    int v2y = ball2.Vy;
+
+                    int newV1X = (v1x * (ball1.Mass - ball2.Mass) + 2 * ball2.Mass * v2x) / (ball1.Mass + ball2.Mass);
+                    int newV1Y = (v1y * (ball1.Mass - ball2.Mass) + 2 * ball2.Mass * v2y) / (ball1.Mass + ball2.Mass);
+                    int newV2X = (v2x * (ball2.Mass - ball1.Mass) + 2 * ball1.Mass * v1x) / (ball1.Mass + ball2.Mass);
+                    int newV2Y = (v2y * (ball2.Mass - ball1.Mass) + 2 * ball1.Mass * v1y) / (ball1.Mass + ball2.Mass);
+                    ball1.Vx = newV1X;
+                    ball1.Vy = newV1Y;
+                    ball2.Vx = newV2X;
+                    ball2.Vy = newV2Y;
+                }
+                finally
+                {
+                    readerWriterLockSlim.ExitWriteLock();
+                }
+                return true; // There is a collision
+            }
+            return false; // No collision
+        }
+
+        private void CheckCollisionWithBoard(BallAPI ball)
+        {
+            readerWriterLockSlim.EnterWriteLock();
+            try
+            {
+                int Vx = ball.Vx;
+                int Vy = ball.Vy;
+
+                if (ball.X + Vx < 0 || ball.X + Vx >= BoardWidth)
+                {
+                    Vx = -Vx;
+                }
+
+                if (ball.Y + Vy < 0 || ball.Y + Vy >= BoardHeight)
+                {
+                    Vy = -Vy;
+                }
+
+                ball.Vx = Vx;
+                ball.Vy = Vy;
+            }
+            finally
+            {
+                readerWriterLockSlim.ExitWriteLock();
             }
         }
+
+
+        private void CheckCollisions(object sender, PropertyChangedEventArgs e)
+        {
+            BallAPI ball = (BallAPI)sender;
+            if (ball != null)
+            {
+                CheckCollisionWithBoard(ball);
+
+                foreach (var ball2 in balls)
+                {
+                    if (!ball2.Equals(ball))
+                    {
+                        CheckCollisionWithOtherBall(ball, ball2);
+                    }
+                }
+            }
+
+        }
+
         public override int GetX(int index)
         {
             if (index >= 0 && index < balls.Count)
@@ -120,12 +175,18 @@ namespace Logic
 
         public override void Start()
         {
-            Timer.Start();
+            foreach (var ball in balls)
+            {
+                ball.isSimRunning = true;
+            }
         }
 
         public override void Stop()
         {
-            Timer.Stop();
+            foreach (var ball in balls)
+            {
+                ball.isSimRunning = false;
+            }
         }
 
         public override int GetSize(int i)

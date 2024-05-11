@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,6 +9,46 @@ namespace Data
 {
     internal class Data : DataAPI
     {
+        private int _boardWidth;
+        private int _boardHeight;
 
+        public Data(int boardWidth, int boardHeight)
+        {
+            _boardWidth = boardWidth;
+            _boardHeight = boardHeight;
+        }
+
+        public override int getBoardWidth()
+        {
+            return _boardWidth;
+        }
+        public override int getBoardHeight()
+        {
+            return _boardHeight;
+        }
+
+        public override BallAPI createBall(bool isSimRunning)
+        {
+            Random random = new Random();
+            int x = random.Next(20, _boardWidth - 20);
+            int y = random.Next(20, _boardHeight - 20);
+            int valueX = random.Next(-2, 3);
+            int valueY = random.Next(-2, 3);
+
+            if (valueX == 0)
+            {
+                valueX = random.Next(1, 3) * 2 - 3;
+            }
+            if (valueY == 0)
+            {
+                valueY = random.Next(1, 3) * 2 - 3;
+            }
+
+            int Vx = valueX;
+            int Vy = valueY;
+            int radius = 20;
+            int mass = 200;
+            return BallAPI.CreateBallAPI(x, y, Vx, Vy, radius, mass, isSimRunning);
+        }
     }
 }

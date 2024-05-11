@@ -9,15 +9,15 @@ namespace ViewModel
 {
     internal class ViewModelAPI : AbstractViewModelAPI, INotifyPropertyChanged
     {
-        private readonly AbstractModelAPI model;
+        private readonly AbstractModelAPI _model;
 
         private ObservableCollection<object> balls;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ViewModelAPI(int boardWidth, int boardHeight)
+        public ViewModelAPI(ModelAPI model)
         {
-            model = AbstractModelAPI.CreateAPI(boardWidth,boardHeight);
+            _model = model;
             this.StartCommand = new Command(Start);
             this.CreateBallCommand = new Command(CreateBall);
             this.Balls = GetBalls();
@@ -29,7 +29,7 @@ namespace ViewModel
 
         public override void CreateBall()
         {
-            model.CreateBall();
+            _model.CreateBall();
             Balls = GetBalls();
         }
 
@@ -37,7 +37,7 @@ namespace ViewModel
 
         public override void Start()
         {
-            model.Start();
+            _model.Start();
         }
 
         public override ObservableCollection<object> Balls
@@ -57,7 +57,7 @@ namespace ViewModel
 
         public override ObservableCollection<object> GetBalls()
         {
-            return model.GetBalls();
+            return _model.GetBalls();
         }
     }
 }
