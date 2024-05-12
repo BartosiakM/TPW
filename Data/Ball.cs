@@ -109,8 +109,14 @@ namespace Data
                     setPosition(newPosition);
                 }
 
+                
+                
+
+                
                 double velocity = Math.Sqrt(_deltaX * _deltaX + _deltaY * _deltaY);
-                await Task.Delay(TimeSpan.FromMilliseconds(1000 / 360 * velocity));
+                int delayMilliseconds = (int)(8); 
+
+                await Task.Delay(delayMilliseconds);
             }
 
 
