@@ -37,7 +37,7 @@ namespace Logic
 
         }
 
-        
+
     }
     internal class LogicAPI : AbstractLogicAPI
     {
@@ -53,7 +53,7 @@ namespace Logic
         {
             balls = new List<BallAPI>();
             this.BoardWidth = data.getBoardWidth();
-            this.BoardHeight = data.getBoardHeight(); 
+            this.BoardHeight = data.getBoardHeight();
             this.data = data;
 
         }

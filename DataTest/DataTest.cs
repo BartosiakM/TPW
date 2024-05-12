@@ -144,9 +144,7 @@ namespace DataTests
         [TestInitialize]
         public void Setup()
         {
-            int boardWidth = 500;
-            int boardHeight = 400;
-            data = DataAPI.CreateDataAPI(boardWidth, boardHeight);
+            data = DataAPI.CreateDataAPI();
         }
 
         [TestMethod]
@@ -154,14 +152,14 @@ namespace DataTests
         {
             int expectedValue = data.getBoardWidth();
 
-            Assert.AreEqual(expectedValue, 500);
+            Assert.AreEqual(expectedValue, 315);
         }
         [TestMethod]
         public void DataAPI_getBoardHeight()
         {
             int expectedValue = data.getBoardHeight();
 
-            Assert.AreEqual(expectedValue, 400);
+            Assert.AreEqual(expectedValue, 150);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace LogicTest
             [TestInitialize]
             public void TestInitialize()
             {
-                ballsApi = AbstractLogicAPI.CreateApi(300, 150, new TestData(300, 150));
+                ballsApi = AbstractLogicAPI.CreateApi(null);
             }
 
             [TestMethod]
@@ -81,7 +81,7 @@ namespace LogicTest
                 int y = ballsApi.GetY(0);
                 int size = ballsApi.GetSize(0);
                 Assert.IsTrue(x >= 0);
-                Assert.IsTrue(x <= 300);
+                Assert.IsTrue(x <= 315);
                 Assert.IsTrue(y >= 0);
                 Assert.IsTrue(y <= 150);
                 Assert.AreEqual(20, size);
