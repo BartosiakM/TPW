@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Data;
+using System.Numerics;
 
 namespace DataTests
 {
@@ -11,14 +12,13 @@ namespace DataTests
         [TestInitialize]
         public void Setup()
         {
-            int X = 2;
-            int Y = 2;
+            Vector2 position = new Vector2(2, 2);
             int deltaX = 1;
             int deltaY = 1;
             int size = 10;
             int mass = 5;
             bool isSimRunning = false;
-            ball = BallAPI.CreateBallAPI(X,Y,deltaX,deltaY,size,mass, isSimRunning);
+            ball = BallAPI.CreateBallAPI(position, deltaX,deltaY,size,mass, isSimRunning);
         }
 
         [TestMethod]
@@ -31,12 +31,11 @@ namespace DataTests
         [TestMethod]
         public void BallAPI_PostionTest()
         {
-            int X = 2;
-            int Y = 2;
-            var expectedX = ball.X;
-            var expectedY = ball.Y;
-            Assert.AreEqual(expectedX, X);
-            Assert.AreEqual(expectedY, Y);
+            Vector2 position = new Vector2(2, 2);
+
+            var excpectedPosition = ball.Position;
+
+            Assert.AreEqual(excpectedPosition, position);
         }
 
         [TestMethod]
@@ -90,8 +89,7 @@ namespace DataTests
             int newDeltaX = 10;
             int newDeltaY = 10;
 
-            ball.Vx = newDeltaX;
-            ball.Vy = newDeltaY;
+            ball.setVelocity(newDeltaX, newDeltaY);
 
             Assert.AreEqual(10, ball.Vx);
             Assert.AreEqual(10, ball.Vy);

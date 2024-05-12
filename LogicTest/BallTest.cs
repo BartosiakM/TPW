@@ -29,13 +29,14 @@ namespace LogicTest
                     _boardWidth = boardWidth;
                 }
 
-                public override BallAPI createBall(bool isSimulationRunning)
+                public override BallAPI createBall(bool isSimRunning)
                 {
                     Random random = new Random();
                     int x = random.Next(20, _boardWidth - 20);
                     int y = random.Next(20, _boardHeight - 20);
                     int valueX = random.Next(-3, 4);
                     int valueY = random.Next(-3, 4);
+                    Vector2 position = new Vector2((int)x, (int)y);
 
                     if (valueX == 0)
                     {
@@ -50,7 +51,7 @@ namespace LogicTest
                     int Vy = valueY;
                     int radius = 20;
                     int mass = 200;
-                    return BallAPI.CreateBallAPI(x, y, Vx, Vy, radius, mass, isSimulationRunning);
+                    return BallAPI.CreateBallAPI(position, Vx, Vy, radius, mass, isSimRunning);
                 }
                 public override int getBoardHeight()
                 {

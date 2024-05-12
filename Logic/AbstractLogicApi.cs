@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Numerics;
 using System.Timers;
 
 
@@ -66,11 +67,10 @@ namespace Logic
 
         private bool CheckCollisionWithOtherBall(BallAPI ball1, BallAPI ball2)
         {
-            int distanceX = ball2.X - ball1.X;
-            int distanceY = ball2.Y - ball1.Y;
-            int combinedRadius = ball1.Size / 2 + ball2.Size / 2;
-
-            if (distanceX * distanceX + distanceY * distanceY <= combinedRadius * combinedRadius)
+            Vector2 position1 = ball1.Position;
+            Vector2 position2 = ball2.Position;
+            int distance = (int)Math.Sqrt(Math.Pow((position1.X + ball1.Vx) - (position2.X + ball2.Vx), 2) + Math.Pow((position1.Y + ball1.Vx) - (position2.Y + ball2.Vy), 2));
+            if (distance <= ball1.Size / 2 + ball2.Size / 2)
             {
                 readerWriterLockSlim.EnterWriteLock();
                 try
@@ -84,18 +84,17 @@ namespace Logic
                     int newV1Y = (v1y * (ball1.Mass - ball2.Mass) + 2 * ball2.Mass * v2y) / (ball1.Mass + ball2.Mass);
                     int newV2X = (v2x * (ball2.Mass - ball1.Mass) + 2 * ball1.Mass * v1x) / (ball1.Mass + ball2.Mass);
                     int newV2Y = (v2y * (ball2.Mass - ball1.Mass) + 2 * ball1.Mass * v1y) / (ball1.Mass + ball2.Mass);
-                    ball1.Vx = newV1X;
-                    ball1.Vy = newV1Y;
-                    ball2.Vx = newV2X;
-                    ball2.Vy = newV2Y;
+                    ball1.setVelocity(newV1X, newV1Y);
+                    ball2.setVelocity(newV2X, newV2Y);
                 }
                 finally
                 {
                     readerWriterLockSlim.ExitWriteLock();
                 }
-                return true; // There is a collision
+                return false;
             }
-            return false; // No collision
+            return true;
+
         }
 
         private void CheckCollisionWithBoard(BallAPI ball)
@@ -105,26 +104,25 @@ namespace Logic
             {
                 int Vx = ball.Vx;
                 int Vy = ball.Vy;
+                Vector2 position = ball.Position;
 
-                if (ball.X + Vx < 0 || ball.X + Vx >= BoardWidth)
+                if (position.X + ball.Vx < 0 || position.X + ball.Vx >= BoardWidth)
                 {
-                    Vx = -Vx;
+                    Vx = -ball.Vx;
                 }
 
-                if (ball.Y + Vy < 0 || ball.Y + Vy >= BoardHeight)
+                if (position.Y + ball.Vy < 0 || position.Y + ball.Vy >= BoardHeight)
                 {
-                    Vy = -Vy;
+                    Vy = -ball.Vy;
                 }
 
-                ball.Vx = Vx;
-                ball.Vy = Vy;
+                ball.setVelocity(Vx, Vy);
             }
             finally
             {
                 readerWriterLockSlim.ExitWriteLock();
             }
         }
-
 
         private void CheckCollisions(object sender, PropertyChangedEventArgs e)
         {
@@ -148,7 +146,7 @@ namespace Logic
         {
             if (index >= 0 && index < balls.Count)
             {
-                return balls[index].X;
+                return (int)balls[index].Position.Y;
             }
             else
             {
@@ -160,7 +158,7 @@ namespace Logic
         {
             if (index >= 0 && index < balls.Count)
             {
-                return balls[index].Y;
+                return (int)balls[index].Position.X;
             }
             else
             {
