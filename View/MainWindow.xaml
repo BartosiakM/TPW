@@ -3,13 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ViewModel;assembly=ViewModel"
+        xmlns:local="clr-namespace:View"
+        xmlns:viewmodel="clr-namespace:ViewModel;assembly=ViewModel"
         mc:Ignorable="d"
         Title="MainWindow" Height="600" Width="1080" Background="#383838">
 
-    <Window.Resources>
-
-    </Window.Resources>
+    <Window.DataContext>
+        <viewmodel:ViewModelAPI/>
+    </Window.DataContext>
     <Grid>
         <Canvas Margin="200" Height="335" Background="Green" >
             <ItemsControl ItemsSource="{Binding Balls}" Padding="0">
@@ -35,7 +36,8 @@
                 </ItemsControl.ItemContainerStyle>
             </ItemsControl>
         </Canvas>
-        <Button Content="Start" Command ="{Binding StartCommand}" HorizontalAlignment="Left" Margin="310,75,0,0" VerticalAlignment="Top" Height="49" Width="183"/>
-        <Button Content="Add Ball" Command ="{Binding CreateBallCommand}" HorizontalAlignment="Left" Margin="584,75,0,0" VerticalAlignment="Top" Height="49" Width="184" RenderTransformOrigin="0.502,0.556"/>
+        <Button Content="Start" Command ="{Binding StartCommand}" HorizontalAlignment="Left" Margin="200,75,0,0" VerticalAlignment="Top" Height="49" Width="183"/>
+        <Button Content="Add Ball" Command ="{Binding CreateBallCommand}" HorizontalAlignment="Left" Margin="696,75,0,0" VerticalAlignment="Top" Height="49" Width="184" RenderTransformOrigin="0.502,0.556"/>
+        <Button Content="Stop" Command ="{Binding StopCommand}" HorizontalAlignment="Center" Margin="0,75,0,0" VerticalAlignment="Top" Height="49" Width="184"/>
     </Grid>
 </Window>

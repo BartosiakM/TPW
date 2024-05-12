@@ -31,5 +31,10 @@ namespace Model
         {
             logic.Start();
         }
+
+        public override void Stop()
+        {
+            logic.Stop();
+        }
     }
 }

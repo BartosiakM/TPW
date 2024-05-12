@@ -12,10 +12,10 @@ namespace Data
         private int _boardWidth;
         private int _boardHeight;
 
-        public Data(int boardWidth, int boardHeight)
+        public Data()
         {
-            _boardWidth = boardWidth;
-            _boardHeight = boardHeight;
+            _boardWidth = 315;
+            _boardHeight = 150;
         }
 
         public override int getBoardWidth()

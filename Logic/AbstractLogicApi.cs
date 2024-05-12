@@ -23,11 +23,11 @@ namespace Logic
         public abstract int GetSize(int i);
         public abstract int GetBallsNumber();
 
-        public static AbstractLogicAPI CreateApi(int width, int height, DataAPI data)
+        public static AbstractLogicAPI CreateApi(DataAPI data)
         {
             if (data == null)
             {
-                return new LogicAPI(DataAPI.CreateDataAPI(width, height));
+                return new LogicAPI(DataAPI.CreateDataAPI());
 
             }
             else

@@ -11,9 +11,9 @@ namespace Data
         public abstract BallAPI createBall(bool isSimRunning);
         public abstract int getBoardWidth();
         public abstract int getBoardHeight();
-        public static DataAPI CreateDataAPI(int boardWidth, int boardHeight)
+        public static DataAPI CreateDataAPI()
         {
-            return new Data(boardWidth, boardHeight);
+            return new Data();
         }
     }
 }

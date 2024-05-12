@@ -7,25 +7,26 @@ using Model;
 
 namespace ViewModel
 {
-    internal class ViewModelAPI : AbstractViewModelAPI, INotifyPropertyChanged
+    public class ViewModelAPI : AbstractViewModelAPI, INotifyPropertyChanged
     {
         private readonly AbstractModelAPI _model;
 
         private ObservableCollection<object> balls;
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public override ICommand StartCommand { get; }
+        public override ICommand StopCommand { get; }
+        public override ICommand CreateBallCommand { get; }
 
-        public ViewModelAPI(ModelAPI model)
+        public ViewModelAPI()
         {
-            _model = model;
+            _model = ModelAPI.CreateModelAPI(null);
             this.StartCommand = new Command(Start);
+            this.StopCommand = new Command(Stop);
             this.CreateBallCommand = new Command(CreateBall);
             this.Balls = GetBalls();
         }
 
-        public override ICommand StartCommand { get; }
-
-        public override ICommand CreateBallCommand { get; }
 
         public override void CreateBall()
         {
@@ -38,6 +39,11 @@ namespace ViewModel
         public override void Start()
         {
             _model.Start();
+        }
+
+        public override void Stop()
+        {
+            _model.Stop();
         }
 
         public override ObservableCollection<object> Balls

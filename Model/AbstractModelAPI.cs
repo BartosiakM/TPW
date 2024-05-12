@@ -7,14 +7,15 @@ namespace Model
     public abstract class AbstractModelAPI
     {
         public abstract void Start();
+        public abstract void Stop();
         public abstract void CreateBall();
 
         public abstract ObservableCollection<object> GetBalls();
-        public static ModelAPI CreateModelAPI(int boardWidht, int boardHeight, AbstractLogicAPI logicAPI)
+        public static ModelAPI CreateModelAPI( AbstractLogicAPI logicAPI)
         {
             if (logicAPI == null)
             {
-                return new ModelAPI(AbstractLogicAPI.CreateApi(boardWidht, boardHeight, null));
+                return new ModelAPI(AbstractLogicAPI.CreateApi(null));
             }
             else
             {

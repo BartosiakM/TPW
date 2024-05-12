@@ -8,16 +8,18 @@ namespace ViewModel
     {
         public abstract ObservableCollection<object> Balls { get; set; }
         public abstract ICommand StartCommand { get; }
+        public abstract ICommand StopCommand { get; }
         public abstract ICommand CreateBallCommand { get; }
 
         public abstract void Start();
+        public abstract void Stop();
         public abstract void CreateBall();
 
         public abstract ObservableCollection<object> GetBalls();
 
-        public static AbstractViewModelAPI createAPI(int boardWidth,int boardHeight)
+        public static AbstractViewModelAPI createAPI()
         {
-            return new ViewModelAPI(ModelAPI.CreateModelAPI(boardWidth, boardHeight, null));
+            return new ViewModelAPI();
         }
 
     }
