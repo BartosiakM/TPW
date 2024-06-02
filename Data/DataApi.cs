@@ -13,7 +13,7 @@ namespace Data
         public abstract Vector2 Velocity { get; set; }
         public abstract int Radius { get; }
         public abstract bool IsStopped { set; }
-        public abstract IDisposable Subscribe (IObserver<DataAPI> observer);
+        public abstract IDisposable Subscribe(IObserver<DataAPI> observer);
         public static DataAPI CreateBall(Vector2 position, int radius, float velocity, Random random)
         {
             return new Ball(position, radius, velocity, random);

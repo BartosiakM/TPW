@@ -11,7 +11,7 @@ namespace Model
             set
             {
                 postion.X = value;
-                OnPropertyChanged (nameof(X));
+                OnPropertyChanged(nameof(X));
             }
         }
 
