@@ -3,38 +3,22 @@ using Logic;
 
 namespace Model
 {
-    public class ModelAPI : AbstractModelAPI
+    public abstract class ModelAPI
     {
-        private AbstractLogicAPI logic;
+        public abstract int Width { get; }
+        public abstract int Height { get; }
+        public abstract ObservableCollection<BallModelAPI> Balls { get; }
 
-        public ModelAPI(AbstractLogicAPI logic)
+        public static ModelAPI CreateApi()
         {
-            this.logic = logic;
+            return new Model();
         }
 
-        public override void CreateBall()
+        public static ModelAPI CreateApi(AbstractLogicAPI logic)
         {
-            logic.CreateBall();
+            return new Model(logic);
         }
-
-        public override ObservableCollection<object> GetBalls()
-        {
-            ObservableCollection<object> balls = new ObservableCollection<object>();
-            foreach(object ball in logic.balls)
-            {
-                balls.Add(ball);
-            }
-            return balls;
-        }
-
-        public override void Start()
-        {
-            logic.Start();
-        }
-
-        public override void Stop()
-        {
-            logic.Stop();
-        }
+        public abstract void Start(int number, int radius, float velocity);
+        public abstract void ResetTable();
     }
 }

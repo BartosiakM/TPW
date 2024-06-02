@@ -22,6 +22,7 @@ namespace Data
         {
             return _boardWidth;
         }
+
         public override int getBoardHeight()
         {
             return _boardHeight;
@@ -34,20 +35,18 @@ namespace Data
             int y = random.Next(20, _boardHeight - 20);
             int valueX = GenerateRandomVelocity();
             int valueY = GenerateRandomVelocity();
+            Vector2 velocity = new Vector2((int)valueX, (int)valueY);
             Vector2 position = new Vector2((int)x, (int)y);
 
-            
-
-            int Vx = valueX;
-            int Vy = valueY;
             int radius = 20;
             int mass = 200;
-            return BallAPI.CreateBallAPI(position, Vx, Vy, radius, mass, isSimRunning);
+            return BallAPI.CreateBallAPI(position, velocity, radius, mass, isSimRunning);
         }
+
         private int GenerateRandomVelocity()
         {
             Random random = new Random();
-            int[] possibleVelocities = {-3, -2, -1, 1, 2, 3};
+            int[] possibleVelocities = { -3, -2, -1, 1, 2, 3 };
             return possibleVelocities[random.Next(possibleVelocities.Length)];
         }
     }

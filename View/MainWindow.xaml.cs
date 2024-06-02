@@ -12,7 +12,6 @@ namespace View
         public MainWindow()
         {
             InitializeComponent();
-            //DataContext = AbstractViewModelAPI.createAPI(315, 150);
         }
     }
 }

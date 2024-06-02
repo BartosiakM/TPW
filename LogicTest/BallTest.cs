@@ -1,118 +1,57 @@
-﻿using Data;
+﻿using System.Numerics;
+using Data;
 using Logic;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
-namespace LogicTest
+namespace LogicTest;
+
+internal class FakeDataApi : DataAPI
 {
-    [TestClass]
-    public class BallsAPITests
+    public override Vector2 Position => throw new NotImplementedException();
+
+    public override Vector2 Velocity
     {
-        [TestClass]
-        public class LogicAPITests
-        {
-            private AbstractLogicAPI ballsApi;
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
 
-            public class TestData : DataAPI
-            {
-                private int _boardWidth;
-                private int _boardHeight;
-                public TestData(int boardWidth, int boardHeight)
-                {
-                    _boardHeight = boardHeight;
-                    _boardWidth = boardWidth;
-                }
+    public override int Radius => throw new NotImplementedException();
 
-                public override BallAPI createBall(bool isSimRunning)
-                {
-                    Random random = new Random();
-                    int x = random.Next(20, _boardWidth - 20);
-                    int y = random.Next(20, _boardHeight - 20);
-                    int valueX = random.Next(-3, 4);
-                    int valueY = random.Next(-3, 4);
-                    Vector2 position = new Vector2((int)x, (int)y);
+    public override bool IsStopped
+    {
+        set { }
+    }
 
-                    if (valueX == 0)
-                    {
-                        valueX = random.Next(1, 3) * 2 - 3;
-                    }
-                    if (valueY == 0)
-                    {
-                        valueY = random.Next(1, 3) * 2 - 3;
-                    }
+    public override IDisposable Subscribe(IObserver<DataAPI> observer)
+    {
+        throw new NotImplementedException();
+    }
+}
 
-                    int Vx = valueX;
-                    int Vy = valueY;
-                    int radius = 20;
-                    int mass = 200;
-                    return BallAPI.CreateBallAPI(position, Vx, Vy, radius, mass, isSimRunning);
-                }
-                public override int getBoardHeight()
-                {
-                    return _boardHeight;
-                }
+[TestClass]
+public class TableTest
+{
+    [TestMethod]
+    public void CreateApiTest()
+    {
+        var fakeDataApis = new List<FakeDataApi>();
+        var balls = fakeDataApis.OfType<DataAPI>().ToList();
+        var table = AbstractLogicAPI.CreateApi(1, 1, balls);
+        Assert.IsNotNull(table);
+    }
 
-                public override int getBoardWidth()
-                {
-                    return _boardWidth;
-                }
-            }
-
-            [TestInitialize]
-            public void TestInitialize()
-            {
-                ballsApi = AbstractLogicAPI.CreateApi(null);
-            }
-
-            [TestMethod]
-            public void TestCreateBall()
-            {
-                ballsApi.CreateBall();
-                ballsApi.Stop();
-                Assert.AreEqual(1, ballsApi.GetBallsNumber());
-
-                int x = ballsApi.GetX(0);
-                int y = ballsApi.GetY(0);
-                int size = ballsApi.GetSize(0);
-                Assert.IsTrue(x >= 0);
-                Assert.IsTrue(x <= 315);
-                Assert.IsTrue(y >= 0);
-                Assert.IsTrue(y <= 150);
-                Assert.AreEqual(20, size);
-            }
-
-
-            [TestMethod]
-            public void CreateBall_AddsNewBallToList()
-            {
-
-
-                ballsApi.CreateBall();
-
-
-                Assert.IsNotNull(ballsApi.balls);
-                Assert.AreEqual(1, ballsApi.GetBallsNumber());
-            }
-
-            [TestMethod]
-            public void Test_GetAllBalls()
-            {
-                int expectedCount = 1;
-                ballsApi.CreateBall();
-
-
-                List<BallAPI> balls = ballsApi.balls;
-
-
-                Assert.AreEqual(expectedCount, balls.Count);
-            }
-
-        }
+    [TestMethod]
+    public void TestResetTable()
+    {
+        var fakeDataApis = new List<FakeDataApi>();
+        var data1 = new FakeDataApi();
+        var data2 = new FakeDataApi();
+        var data3 = new FakeDataApi();
+        fakeDataApis.Add(data1);
+        fakeDataApis.Add(data2);
+        fakeDataApis.Add(data3);
+        var balls = fakeDataApis.OfType<DataAPI>().ToList();
+        var table = AbstractLogicAPI.CreateApi(1, 1, balls);
+        table.ResetTable();
+        Assert.AreEqual(0, table.GetBallPositions().Count);
     }
 }

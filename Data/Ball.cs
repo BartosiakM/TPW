@@ -1,171 +1,118 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Data
 {
-    public abstract class BallAPI
+    internal class Ball : DataAPI, IObservable<DataAPI>
     {
-        public abstract Vector2 Position { get; }
-        public abstract int X { get; }
-        public abstract int Y { get; }
-        public abstract bool isSimRunning { get; set; }
-        public abstract void setVelocity(int Vx, int Vy);
-        public abstract void subscribeToPropertyChanged(PropertyChangedEventHandler handler);
-        public abstract int Vx { get; }
-        public abstract int Vy { get;}
-        public abstract int Mass { get; }
-        public abstract int Diameter { get; }
-        public abstract int Size { get; }
-        public static BallAPI CreateBallAPI(Vector2 _position, int _deltaX, int _deltaY, int _size, int _mass, bool isSimRunning)
-        {
-            return new Ball(_position, _deltaX, _deltaY, _size, _mass, isSimRunning);
-        }
-    }
-
-    internal class Ball : BallAPI, INotifyPropertyChanged
-    {
+        private readonly List<IObserver<DataAPI>> _observers = [];
         private Vector2 _position;
-        private int _deltaX;
-        private int _deltaY;
+        private Vector2 _velocity;
         private readonly int _size;
         private readonly int _mass;
-        private bool _isSimRunning;
-        private static readonly ReaderWriterLockSlim velocityLock = new ReaderWriterLockSlim();
-        private static readonly ReaderWriterLockSlim positionLock = new ReaderWriterLockSlim();
-        private readonly Stopwatch stopwatch = new Stopwatch();
+        private bool _isStopped;
 
 
-        public Ball(Vector2 position, int deltaX, int deltaY, int size, int mass, bool _isSimRunning)
+        private readonly object _positionLock = new();
+        private readonly object _velocityLock = new();
+        private readonly object _stopLock = new();
+
+
+        public Ball(Vector2 position, int radius, float velocity, Random random)
         {
             _position = position;
-            _deltaX = deltaX;
-            _deltaY = deltaY;
-            _size = size;
-            _mass = mass;
-            Task.Run(() => Move());
-            this._isSimRunning = _isSimRunning;
-
+            Radius = radius;
+            Task.Run(() => Move(velocity, random));
         }
 
         public override Vector2 Position
         {
             get
             {
-                positionLock.EnterReadLock();
-                try
+                lock (_positionLock)
                 {
                     return _position;
                 }
-                finally { positionLock.ExitReadLock(); }
-
             }
         }
 
-        public override int X { get { return (int)_position.X; } }
-        public override int Y { get { return (int)_position.Y; } }
-
-        public override void subscribeToPropertyChanged(PropertyChangedEventHandler handler)
-        {
-            this.PropertyChanged += handler;
-        }
-
-        private void setPosition(Vector2 newPosition)
-        {
-            positionLock.EnterWriteLock();
-            try
-            {
-                _position.X = newPosition.X;
-                _position.Y = newPosition.Y;
-            }
-            finally
-            {
-                positionLock.ExitWriteLock();
-            }
-            OnPropertyChanged(nameof(Position.X));
-            OnPropertyChanged(nameof(Position.Y));
-        }
-
-        public override bool isSimRunning
-        {
-            get { return _isSimRunning; }
-            set { _isSimRunning = value; }
-        }
-
-
-
-        public override int Vx
+        public override Vector2 Velocity
         {
             get
             {
-                velocityLock.EnterReadLock();
-                try
+                lock (_velocityLock)
                 {
-                    return _deltaX;
+                    return _velocity;
                 }
-                finally { velocityLock.ExitReadLock(); }
             }
-        }
-
-        public override int Vy
-        {
-            get
+            set
             {
-                velocityLock.EnterReadLock();
-                try
+                lock (_velocityLock)
                 {
-                    return _deltaY;
+                    _velocity = value;
                 }
-                finally { velocityLock.ExitReadLock(); }
             }
         }
 
-        public override void setVelocity(int Vx, int Vy)
-        {
-            velocityLock.EnterWriteLock();
-            try
-            {
-                this._deltaX = Vx;
-                this._deltaY = Vy;
-            }
-            finally
-            {
-                velocityLock?.ExitWriteLock();
-            }
+        public override int Radius { get; }
 
+        public override bool IsStopped
+        {
+            set
+            {
+                lock (_stopLock)
+                {
+                    _isStopped = value;
+                }
+            }
         }
 
-        public override int Diameter => _size * 2;
-        public override int Mass => _mass;
-        public override int Size => _size;
-
-        private async Task Move()
+        public override IDisposable Subscribe(IObserver<DataAPI> observer)
         {
+            if (!_observers.Contains(observer)) _observers.Add(observer);
+            return new SubscriptionToken(_observers, observer);
+        }
+
+        private async void Move(float velocity, Random random)
+        {
+            float moveAngle = random.Next(0, 360);
+            Velocity = new Vector2(velocity * (float)Math.Cos(moveAngle), velocity * (float)Math.Sin(moveAngle));
+            const float timeOfTravel = 1f / 60f;
             while (true)
             {
-                stopwatch.Restart();
-                if (isSimRunning)
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+                await Task.Delay(TimeSpan.FromSeconds(timeOfTravel));
+                stopwatch.Stop();
+                var timeElapsed = (float)stopwatch.Elapsed.TotalSeconds;
+                var velocityChange = Velocity * timeElapsed;
+                lock (_positionLock)
                 {
-                    int newX = (int)_position.X + _deltaX;
-                    int newY = (int)_position.Y + _deltaY;
-                    Vector2 newPosition = new Vector2(newX, newY);
-                    setPosition(newPosition);
+                    _position += velocityChange;
                 }
 
-                double velocity = Math.Sqrt(_deltaX * _deltaX + _deltaY * _deltaY);
-                stopwatch.Stop();
-                await Task.Delay(TimeSpan.FromMilliseconds(1000 / 460 * velocity + (int)stopwatch.ElapsedMilliseconds));
+                NotifyObservers(this);
             }
-
-
         }
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+
+        private void NotifyObservers(DataAPI ball)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            foreach (var observer in _observers) observer.OnNext(ball);
         }
 
+    }
+
+    internal class SubscriptionToken(ICollection<IObserver<DataAPI>> observers, IObserver<DataAPI> observer)
+    : IDisposable
+    {
+        public void Dispose()
+        {
+            observers.Remove(observer);
+        }
     }
 }

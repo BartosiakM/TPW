@@ -1,32 +1,24 @@
-﻿using System;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
-namespace ViewModel
+namespace ViewModel;
+
+public class RelayCommand(Action<object> execute, Func<object, bool>? canExecute = null)
+    : ICommand
 {
-    public class Command : ICommand
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter)
     {
-        private readonly Action action;
-        private readonly Func<bool> canExecute;
+        return canExecute == null || canExecute(parameter!);
+    }
 
-        public Command(Action action, Func<bool> canExecute = null)
-        {
-            this.action = action ?? throw new Exception();
-            this.canExecute = canExecute;
-        }
+    public void Execute(object? parameter)
+    {
+        execute(parameter!);
+    }
 
-        
-        public event EventHandler CanExecuteChanged;
-
-        protected virtual void OnCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return canExecute == null || canExecute();
-        }
-
-        public void Execute(object parameter) => action();
+    public void RaiseCanExecuteChanged()
+    {
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }
 }

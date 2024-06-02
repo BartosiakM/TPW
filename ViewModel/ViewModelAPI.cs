@@ -1,69 +1,120 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Model;
 
-namespace ViewModel
+namespace ViewModel;
+
+public class ViewModelAPI : INotifyPropertyChanged
 {
-    public class ViewModelAPI : AbstractViewModelAPI, INotifyPropertyChanged
+    private readonly ModelAPI _modelApi;
+    private readonly Random _random = new Random();
+
+
+    private int _ballsAmount;
+    private int _radius;
+    private bool _startButtonEnabled = true;
+    private float _velocity;
+
+    public ViewModelAPI()
     {
-        private readonly AbstractModelAPI _model;
+        _modelApi = ModelAPI.CreateApi();
+        Width = _modelApi.Width;
+        Height = _modelApi.Height;
+        Balls = _modelApi.Balls;
+        StartButtonClicked = new RelayCommand(o => { Start(BallsAmount, Radius, Velocity); }, o => CanStart());
+        ResetButtonClicked = new RelayCommand(o => { ResetTable(); }, o => CanReset());
 
-        private ObservableCollection<object> balls;
+        BallsAmount = _random.Next(1, 10);
+        Radius = _random.Next(10, 50);
+        Velocity = (float)_random.NextDouble() * 10;
+    }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        public override ICommand StartCommand { get; }
-        public override ICommand StopCommand { get; }
-        public override ICommand CreateBallCommand { get; }
+    public ViewModelAPI(ModelAPI modelApi)
+    {
+        _modelApi = modelApi;
+        Width = modelApi.Width;
+        Height = modelApi.Height;
+        Balls = [];
+        StartButtonClicked = new RelayCommand(o => { Start(BallsAmount, Radius, Velocity); }, o => CanStart());
+        ResetButtonClicked = new RelayCommand(o => { ResetTable(); }, o => CanReset());
+    }
 
-        public ViewModelAPI()
+    public RelayCommand StartButtonClicked { get; set; }
+    public RelayCommand ResetButtonClicked { get; set; }
+
+    public int Width { get; }
+
+    public int Height { get; }
+
+    public ObservableCollection<BallModelAPI> Balls { get; }
+
+    public int BallsAmount
+    {
+        get => _ballsAmount;
+        set
         {
-            _model = ModelAPI.CreateModelAPI(null);
-            this.StartCommand = new Command(Start);
-            this.StopCommand = new Command(Stop);
-            this.CreateBallCommand = new Command(CreateBall);
-            this.Balls = GetBalls();
+            if (_ballsAmount == value) return;
+            _ballsAmount = value;
+            OnPropertyChanged(nameof(BallsAmount));
+            StartButtonClicked.RaiseCanExecuteChanged();
+            ResetButtonClicked.RaiseCanExecuteChanged();
         }
+    }
 
-
-        public override void CreateBall()
+    public float Velocity
+    {
+        get => _velocity;
+        set
         {
-            _model.CreateBall();
-            Balls = GetBalls();
+            if (value == _velocity) return;
+            _velocity = value;
+            OnPropertyChanged(nameof(Velocity));
+            StartButtonClicked.RaiseCanExecuteChanged();
         }
+    }
 
-       
-
-        public override void Start()
+    public int Radius
+    {
+        get => _radius;
+        set
         {
-            _model.Start();
+            _radius = value;
+            OnPropertyChanged(nameof(Radius));
+            StartButtonClicked.RaiseCanExecuteChanged();
         }
+    }
 
-        public override void Stop()
-        {
-            _model.Stop();
-        }
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-        public override ObservableCollection<object> Balls
-        {
-            get => balls;
-            set
-            {
-                balls = value;
-                OnPropertyChanged();
-            }
-        }
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+    public bool CanStart()
+    {
+        return _startButtonEnabled && BallsAmount > 0 && Radius > 0 && Velocity > 0;
+    }
 
-        public override ObservableCollection<object> GetBalls()
-        {
-            return _model.GetBalls();
-        }
+    public bool CanReset()
+    {
+        return !_startButtonEnabled && Balls.Count > 0;
+    }
+
+    public void Start(int number, int radius, float velocity)
+    {
+        _modelApi.Start(number, radius, velocity);
+        _startButtonEnabled = false;
+        StartButtonClicked.RaiseCanExecuteChanged();
+        ResetButtonClicked.RaiseCanExecuteChanged();
+    }
+
+    public void ResetTable()
+    {
+        _modelApi.ResetTable();
+        _startButtonEnabled = true;
+        StartButtonClicked.RaiseCanExecuteChanged();
+        ResetButtonClicked.RaiseCanExecuteChanged();
     }
 }

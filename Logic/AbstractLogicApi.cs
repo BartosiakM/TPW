@@ -2,201 +2,240 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Timers;
 
-
 namespace Logic
 {
-
-    public abstract class AbstractLogicAPI
+    public abstract class AbstractLogicAPI : IObservable<AbstractLogicAPI>
     {
-        public abstract List<BallAPI> balls { get; }
-        public abstract int BoardWidth { get; }
-        public abstract int BoardHeight { get; }
-        public abstract void CreateBall();
-        public abstract void Start();
-        public abstract void Stop();
+        public abstract int Width { get; }
+        public abstract int Height { get; }
+        public abstract IDisposable Subscribe(IObserver<AbstractLogicAPI> observer);
 
-        public abstract int GetX(int i);
-        public abstract int GetY(int i);
-        public abstract int GetSize(int i);
-        public abstract int GetBallsNumber();
-
-        public static AbstractLogicAPI CreateApi(DataAPI data)
+        public static AbstractLogicAPI CreateApi(int width, int height)
         {
-            if (data == null)
-            {
-                return new LogicAPI(DataAPI.CreateDataAPI());
-
-            }
-            else
-            {
-                return new LogicAPI(data);
-            }
-
+            return new LogicAPI(width, height);
         }
 
+        public static AbstractLogicAPI CreateApi(int width, int height, List<DataAPI> balls)
+        {
+            return new LogicAPI(width, height, balls);
+        }
 
+        public abstract List<List<float>> GetBallPositions();
+        public abstract void Start(int number, int radius, float velocity);
+        public abstract void ResetTable();
     }
-    internal class LogicAPI : AbstractLogicAPI
+
+    internal class LogicAPI : AbstractLogicAPI, IObserver<DataAPI>, IObservable<AbstractLogicAPI>
     {
-        public override List<BallAPI> balls { get; }
-        private static readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim();
-        public override int BoardWidth { get; }
-        public override int BoardHeight { get; }
+        private readonly object _ballsLock = new();
+        private readonly int _height;
+        private readonly List<IObserver<AbstractLogicAPI>> _observers = new();
+        private readonly int _width;
+        private IDisposable? _subscriptionToken;
 
-        private DataAPI data;
-
-
-        public LogicAPI(DataAPI data)
+        public LogicAPI(int width, int height)
         {
-            balls = new List<BallAPI>();
-            this.BoardWidth = data.getBoardWidth();
-            this.BoardHeight = data.getBoardHeight();
-            this.data = data;
-
-        }
-
-        public override void CreateBall()
-        {
-            BallAPI ball = data.createBall(true);
-            balls.Add(ball);
-            ball.subscribeToPropertyChanged(CheckCollisions);
-        }
-
-        private bool CheckCollisionWithOtherBall(BallAPI ball1, BallAPI ball2)
-        {
-            Vector2 position1 = ball1.Position;
-            Vector2 position2 = ball2.Position;
-            int distance = (int)Math.Sqrt(Math.Pow((position1.X + ball1.Vx) - (position2.X + ball2.Vx), 2) + Math.Pow((position1.Y + ball1.Vx) - (position2.Y + ball2.Vy), 2));
-            if (distance <= ball1.Size / 2 + ball2.Size / 2)
+            _width = width;
+            _height = height;
+            lock (_ballsLock)
             {
-                readerWriterLockSlim.EnterWriteLock();
-                try
-                {
-                    int v1x = ball1.Vx;
-                    int v1y = ball1.Vy;
-                    int v2x = ball2.Vx;
-                    int v2y = ball2.Vy;
-
-                    int newV1X = (v1x * (ball1.Mass - ball2.Mass) + 2 * ball2.Mass * v2x) / (ball1.Mass + ball2.Mass);
-                    int newV1Y = (v1y * (ball1.Mass - ball2.Mass) + 2 * ball2.Mass * v2y) / (ball1.Mass + ball2.Mass);
-                    int newV2X = (v2x * (ball2.Mass - ball1.Mass) + 2 * ball1.Mass * v1x) / (ball1.Mass + ball2.Mass);
-                    int newV2Y = (v2y * (ball2.Mass - ball1.Mass) + 2 * ball1.Mass * v1y) / (ball1.Mass + ball2.Mass);
-                    ball1.setVelocity(newV1X, newV1Y);
-                    ball2.setVelocity(newV2X, newV2Y);
-                }
-                finally
-                {
-                    readerWriterLockSlim.ExitWriteLock();
-                }
-                return false;
-            }
-            return true;
-
-        }
-
-        private void CheckCollisionWithBoard(BallAPI ball)
-        {
-            readerWriterLockSlim.EnterWriteLock();
-            try
-            {
-                int Vx = ball.Vx;
-                int Vy = ball.Vy;
-                Vector2 position = ball.Position;
-
-                if (position.X + ball.Vx < 0 || position.X + ball.Vx >= BoardWidth)
-                {
-                    Vx = -ball.Vx;
-                }
-
-                if (position.Y + ball.Vy < 0 || position.Y + ball.Vy >= BoardHeight)
-                {
-                    Vy = -ball.Vy;
-                }
-
-                ball.setVelocity(Vx, Vy);
-            }
-            finally
-            {
-                readerWriterLockSlim.ExitWriteLock();
+                Balls = new List<DataAPI>();
             }
         }
 
-        private void CheckCollisions(object sender, PropertyChangedEventArgs e)
+        public LogicAPI(int width, int height, List<DataAPI> balls)
         {
-            BallAPI ball = (BallAPI)sender;
-            if (ball != null)
+            _width = width;
+            _height = height;
+            lock (_ballsLock)
             {
-                CheckCollisionWithBoard(ball);
+                Balls = balls;
+            }
+        }
 
-                foreach (var ball2 in balls)
+        public override int Width => _width;
+
+        public override int Height => _height;
+
+        private List<DataAPI> Balls { get; }
+
+        public override IDisposable Subscribe(IObserver<AbstractLogicAPI> observer)
+        {
+            if (!_observers.Contains(observer)) _observers.Add(observer);
+            return new SubscriptionToken(_observers, observer);
+        }
+
+        public void OnCompleted()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnError(Exception error)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnNext(DataAPI value)
+        {
+            WallCollision(value);
+
+            lock (_ballsLock)
+            {
+                foreach (var ball1 in Balls)
+                    if (ball1 != value)
+                        BallCollision(ball1, value);
+            }
+
+            NotifyObservers(this);
+        }
+
+        public override List<List<float>> GetBallPositions()
+        {
+            var ballPositions = new List<List<float>>();
+            lock (_ballsLock)
+            {
+                foreach (var ball in Balls)
                 {
-                    if (!ball2.Equals(ball))
+                    var ballPosition = new List<float> { ball.Position.X, ball.Position.Y };
+                    ballPositions.Add(ballPosition);
+                }
+            }
+
+            return ballPositions;
+        }
+
+        public override void Start(int number, int radius, float velocity)
+        {
+            var random = new Random();
+
+            lock (_ballsLock)
+            {
+                for (var i = 0; i < number; i++)
+                {
+                    Vector2 position;
+                    bool overlaps;
+                    do
                     {
-                        CheckCollisionWithOtherBall(ball, ball2);
-                    }
+                        float x = random.Next(0 + radius, _width - radius);
+                        float y = random.Next(0 + radius, _height - radius);
+                        position = new Vector2(x, y);
+
+                        overlaps = Balls.Any(existingBall =>
+                            Vector2.Distance(existingBall.Position, position) < existingBall.Radius + radius);
+                    } while (overlaps);
+
+                    var ball = DataAPI.CreateBall(position, radius, velocity, random);
+                    Balls.Add(ball);
+                    Subscribe(ball);
                 }
             }
-
         }
 
-        public override int GetX(int index)
+        public override void ResetTable()
         {
-            if (index >= 0 && index < balls.Count)
+            lock (_ballsLock)
             {
-                return (int)balls[index].Position.Y;
+                foreach (var ball in Balls) ball.IsStopped = true;
+                Balls.Clear();
             }
-            else
-            {
-                return -1;
-            }
-        }
 
-        public override int GetY(int index)
-        {
-            if (index >= 0 && index < balls.Count)
+            lock (_ballsLock)
             {
-                return (int)balls[index].Position.X;
-            }
-            else
-            {
-                return -1;
+                foreach (var _ in Balls) Unsubscribe();
             }
         }
 
-        public override int GetBallsNumber()
+        private void Subscribe(DataAPI provider)
         {
-            return balls.Count;
+            _subscriptionToken = provider.Subscribe(this);
         }
 
-        public override void Start()
+        public void Unsubscribe()
         {
-            foreach (var ball in balls)
-            {
-                ball.isSimRunning = true;
-            }
+            _subscriptionToken?.Dispose();
         }
 
-        public override void Stop()
+        private void WallCollision(DataAPI ball)
         {
-            foreach (var ball in balls)
+            var position = ball.Position;
+            var velocity = ball.Velocity;
+            var radius = ball.Radius;
+
+            if (position.X - radius < 0)
             {
-                ball.isSimRunning = false;
+                if (velocity.X < 0)
+                    velocity.X = Math.Abs(velocity.X);
             }
+            else if (position.X + radius > _width)
+            {
+                if (velocity.X > 0)
+                    velocity.X = -Math.Abs(velocity.X);
+            }
+
+            if (position.Y - radius < 0)
+            {
+                if (velocity.Y < 0)
+                    velocity.Y = Math.Abs(velocity.Y);
+            }
+            else if (position.Y + radius > _height)
+            {
+                if (velocity.Y > 0)
+                    velocity.Y = -Math.Abs(velocity.Y);
+            }
+
+            ball.Velocity = velocity;
         }
 
-        public override int GetSize(int i)
+        private static void BallCollision(DataAPI ball1, DataAPI ball2)
         {
-            if (i >= 0 && i < balls.Count)
-            {
-                return balls[i].Size;
-            }
-            else
-            {
-                return -1;
-            }
+            const int mass = 200;
+            var distanceVector = ball2.Position - ball1.Position;
+            float minDistance = ball1.Radius + ball2.Radius;
+
+            if (!(distanceVector.LengthSquared() < minDistance * minDistance)) return;
+            var collisionNormal = Vector2.Normalize(distanceVector);
+
+            var relativeVelocity = ball2.Velocity - ball1.Velocity;
+
+            var impulseMagnitude = Vector2.Dot(relativeVelocity, collisionNormal);
+
+            if (impulseMagnitude > 0)
+                return;
+
+            var newVelocity1 = (mass - mass) / (mass + mass) * ball1.Velocity +
+                               2 * mass / (mass + mass) * ball2.Velocity;
+            var newVelocity2 = 2 * mass / (mass + mass) * ball1.Velocity +
+                               (mass - mass) / (mass + mass) * ball2.Velocity;
+
+            ball1.Velocity = newVelocity1;
+            ball2.Velocity = newVelocity2;
+        }
+
+        private void NotifyObservers(LogicAPI table)
+        {
+            foreach (var observer in _observers) observer.OnNext(table);
+        }
+    }
+
+    internal class SubscriptionToken : IDisposable
+    {
+        private readonly ICollection<IObserver<AbstractLogicAPI>> _observers;
+        private readonly IObserver<AbstractLogicAPI> _observer;
+
+        public SubscriptionToken(ICollection<IObserver<AbstractLogicAPI>> observers, IObserver<AbstractLogicAPI> observer)
+        {
+            _observers = observers;
+            _observer = observer;
+        }
+
+        public void Dispose()
+        {
+            _observers.Remove(_observer);
         }
     }
 }
