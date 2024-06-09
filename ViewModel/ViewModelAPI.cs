@@ -25,9 +25,9 @@ public class ViewModelAPI : INotifyPropertyChanged
         StartButtonClicked = new RelayCommand(o => { Start(BallsAmount, Radius, Velocity); }, o => CanStart());
         ResetButtonClicked = new RelayCommand(o => { ResetTable(); }, o => CanReset());
 
-        BallsAmount = _random.Next(1, 10);
+        BallsAmount = _random.Next(2, 10);
         Radius = _random.Next(10, 50);
-        Velocity = (float)_random.NextDouble() * 10;
+        Velocity = (float)_random.NextDouble() * 100;
     }
 
     public ViewModelAPI(ModelAPI modelApi)
