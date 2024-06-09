@@ -25,6 +25,9 @@ internal class FakeDataApi : DataAPI
     {
         throw new NotImplementedException();
     }
+
+    public override int ID => throw new NotImplementedException();
+
 }
 
 [TestClass]
