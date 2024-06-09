@@ -1,68 +1,37 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace Data
 {
     internal class Ball : DataAPI, IObservable<DataAPI>
     {
-        private readonly List<IObserver<DataAPI>> _observers = new();
+        private readonly List<IObserver<DataAPI>> _observers = [];
         private Vector2 _position;
         private Vector2 _velocity;
+        private readonly int _size;
+        private readonly int _mass;
         private bool _isStopped;
-        private bool run = true;
+        private readonly Logger logger;
+        
+
 
         private readonly object _positionLock = new();
         private readonly object _velocityLock = new();
         private readonly object _stopLock = new();
-        private readonly object fileLock = new();
 
-        private readonly Stopwatch _stopwatch = new();
 
-        public Ball(Vector2 position, int radius, float velocity, Random random)
+        public Ball(Vector2 position, int radius, float velocity, Random random, int id)
         {
             _position = position;
             Radius = radius;
+            ID = id;
+            logger = Logger.CreateInstance();
             Task.Run(() => Move(velocity, random));
-        }
-
-        public override void StopLogging()
-        {
-            run = false;
-        }
-
-        private async Task BallLogger(ConcurrentQueue<DataAPI> queue)
-        {
-            while (run)
-            {
-                _stopwatch.Restart();
-                if (queue.TryDequeue(out DataAPI ball) && ball != null)
-                {
-                    string log = $"{{\n\t\"Date\": \"{DateTime.Now:MM/dd/yyyy HH:mm:ss.fff}\",\n\t\"Info\":{JsonSerializer.Serialize(ball)}\n}}";
-
-                    lock (fileLock)
-                    {
-                        using (var writer = new StreamWriter("..\\..\\..\\..\\..\\Log.json", true, Encoding.UTF8))
-                        {
-                            writer.WriteLine(log);
-                        }
-                    }
-                }
-                _stopwatch.Stop();
-                await Task.Delay((int)_stopwatch.ElapsedMilliseconds + 100);
-            }
-        }
-
-        public override async Task StartLogging(ConcurrentQueue<DataAPI> queue)
-        {
-            run = true;
-            await BallLogger(queue);
         }
 
         public override Vector2 Position
@@ -107,6 +76,8 @@ namespace Data
             }
         }
 
+        public override int ID { get; }
+
         public override IDisposable Subscribe(IObserver<DataAPI> observer)
         {
             if (!_observers.Contains(observer)) _observers.Add(observer);
@@ -118,20 +89,26 @@ namespace Data
             float moveAngle = random.Next(0, 360);
             Velocity = new Vector2(velocity * (float)Math.Cos(moveAngle), velocity * (float)Math.Sin(moveAngle));
             const float timeOfTravel = 1f / 60f;
-            while (!_isStopped)
+            while (true)
             {
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
+                float startTime = stopwatch.ElapsedMilliseconds;
                 await Task.Delay(TimeSpan.FromSeconds(timeOfTravel));
                 stopwatch.Stop();
                 var timeElapsed = (float)stopwatch.Elapsed.TotalSeconds;
                 var velocityChange = Velocity * timeElapsed;
-                lock (_positionLock)
+                if (stopwatch.ElapsedMilliseconds - startTime >= 1f / 60f)
                 {
-                    _position += velocityChange;
-                }
+                    lock (_positionLock)
+                    {
+                        _position += velocityChange;
+                    }
 
-                NotifyObservers(this);
+                    NotifyObservers(this);
+                    logger.addToBuffer(this, DateTime.Now);
+                }
+              
             }
         }
 
@@ -139,25 +116,15 @@ namespace Data
         {
             foreach (var observer in _observers) observer.OnNext(ball);
         }
+
     }
 
-    internal class SubscriptionToken : IDisposable
+    internal class SubscriptionToken(ICollection<IObserver<DataAPI>> observers, IObserver<DataAPI> observer)
+    : IDisposable
     {
-        private readonly ICollection<IObserver<DataAPI>> _observers;
-        private readonly IObserver<DataAPI> _observer;
-
-        public SubscriptionToken(ICollection<IObserver<DataAPI>> observers, IObserver<DataAPI> observer)
-        {
-            _observers = observers;
-            _observer = observer;
-        }
-
         public void Dispose()
         {
-            if (_observers.Contains(_observer))
-            {
-                _observers.Remove(_observer);
-            }
+            observers.Remove(observer);
         }
     }
 }

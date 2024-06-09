@@ -129,7 +129,7 @@ namespace Logic
                             Vector2.Distance(existingBall.Position, position) < existingBall.Radius + radius);
                     } while (overlaps);
 
-                    var ball = DataAPI.CreateBall(position, radius, velocity, random);
+                    var ball = DataAPI.CreateBall(position, radius, velocity, random,i+1);
                     Balls.Add(ball);
                     Subscribe(ball);
                 }
