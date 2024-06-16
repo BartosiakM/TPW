@@ -20,6 +20,8 @@ namespace Data
             public float vY { get; }
             public DateTime Time { get; }
 
+            
+
             public SerializableBall(int id, Vector2 position, Vector2 velocity, DateTime time)
             {
                 BallID = id;
@@ -38,7 +40,7 @@ namespace Data
         private static readonly object overflowLock =  new object();
         private static readonly object instanceLock = new object();
         private bool overflow = false;
-
+        private string overflowMessage;
 
         private Logger()
         {
@@ -69,15 +71,15 @@ namespace Data
 
         public void addToBuffer(DataAPI ball, DateTime time)
         {
-            Task.Run(() =>
-            {
+           
                 bool isAdded = queue.TryAdd(new SerializableBall(ball.ID, ball.Position, ball.Velocity, time));
                 if (isAdded) { return; }
                 lock (overflowLock)
                 {
-                    overflow = true;
+                  overflow = true;
+                  overflowMessage = $"Overflow detected at {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}";
                 }
-            });
+           
         }
 
         private async void Log()
@@ -97,8 +99,10 @@ namespace Data
                         }
                     }
 
-                    if (overflowDetected) await streamWriter.WriteLineAsync("Overflow detected");
-
+                    if (overflowDetected)
+                    {
+                        await streamWriter.WriteLineAsync(overflowMessage);
+                    }
                     SerializableBall ball = queue.Take();
                     string jsonString = JsonConvert.SerializeObject(ball);
                     await streamWriter.WriteLineAsync(jsonString);
