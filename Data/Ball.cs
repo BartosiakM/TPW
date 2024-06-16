@@ -86,29 +86,40 @@ namespace Data
 
         private async void Move(float velocity, Random random)
         {
+            Stopwatch stopwatch = new();
             float moveAngle = random.Next(0, 360);
             Velocity = new Vector2(velocity * (float)Math.Cos(moveAngle), velocity * (float)Math.Sin(moveAngle));
-            const float timeOfTravel = 1f / 60f;
+            var lastUpdateTime = 0f;
+            stopwatch.Start();
             while (true)
             {
-                Stopwatch stopwatch = new();
-                stopwatch.Start();
-                float startTime = stopwatch.ElapsedMilliseconds;
-                await Task.Delay(TimeSpan.FromSeconds(timeOfTravel));
-                stopwatch.Stop();
-                var timeElapsed = (float)stopwatch.Elapsed.TotalSeconds;
-                var velocityChange = Velocity * timeElapsed;
-                if (stopwatch.ElapsedMilliseconds - startTime >= 1f / 60f)
+
+                var currentTime = (float)stopwatch.Elapsed.TotalSeconds;
+                var elapsedSinceLastUpdate = currentTime - lastUpdateTime;
+                const float timeOfTravel = 1f / 60f;
+                if (elapsedSinceLastUpdate >= timeOfTravel)
                 {
+                    lastUpdateTime = currentTime;
                     lock (_positionLock)
                     {
-                        _position += velocityChange;
+                        _position += Velocity * elapsedSinceLastUpdate;
                     }
 
                     NotifyObservers(this);
                     logger.addToBuffer(this, DateTime.Now);
+
                 }
-              
+
+                lock (_stopLock)
+                {
+                    if (_isStopped)
+                    {
+                        stopwatch.Stop();
+                        break;
+                    }
+                }
+                await Task.Delay(TimeSpan.FromSeconds(timeOfTravel));
+
             }
         }
 
